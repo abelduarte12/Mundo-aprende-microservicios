@@ -37,5 +37,9 @@ app.get('/api/contenido/sopa', (req, res) => {
   });
 });
 
+app.get('/api/contenido/pronuncia', (req, res) => {
+  res.json(datos.PRONUNCIA_WORDS);
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => console.log(`Servicio de contenido escuchando en puerto ${PORT}`));

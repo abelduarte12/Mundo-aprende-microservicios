@@ -49,12 +49,13 @@ function guardarProgreso(actividad, puntaje, total) {
 let CONTENIDO_LISTO = false;
 
 async function cargarContenido() {
-  const [actividades, completa, vocales, silabas, sopa] = await Promise.all([
+  const [actividades, completa, vocales, silabas, sopa, pronuncia] = await Promise.all([
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/actividades`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/completa`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/vocales`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/silabas`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/sopa`).then(r => r.json()),
+    fetch(`${API_CONFIG.CONTENIDO}/api/contenido/pronuncia`).then(r => r.json()),
   ]);
   ACTIVITIES = actividades.map(a => ({
     ...a,
@@ -69,6 +70,7 @@ async function cargarContenido() {
   SOPA_WORD_POOL = sopa.pool;
   SOPA_CATEGORIES = sopa.categorias;
   SOPA_SIZE = sopa.tamano;
+  PRONUNCIA_WORDS = pronuncia;
   CONTENIDO_LISTO = true;
 }
 
@@ -616,6 +618,7 @@ function sopaClickCell(r,c){
 // SILABA_WORDS y SILABA_POOL ahora vienen del servicio de contenido.
 let SILABA_WORDS = [];
 let SILABA_POOL = [];
+let PRONUNCIA_WORDS = [];
 let silabaState = null;
 
 function startSilabas(){
@@ -778,6 +781,129 @@ function nextVocalIntro(){
 }
 
 /* =========================================================
+   PRONUNCIACIÓN (Web Speech API — reconocimiento de voz)
+========================================================= */
+let pronunciaState = null;
+
+function startPronuncia(){
+  pronunciaState = { order: shuffle(PRONUNCIA_WORDS).slice(0,8), index:0, score:0, answered:false };
+  renderPronuncia();
+}
+
+function renderPronuncia(){
+  const act = ACTIVITIES.find(a=>a.id==='pronuncia');
+  setBodyTheme('pronuncia');
+  renderFloaters(false);
+  renderTopbar('activity');
+
+  const total = pronunciaState.order.length;
+  const item = pronunciaState.order[pronunciaState.index];
+  const soportado = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+  app.innerHTML = `
+    <div class="quiz-wrap">
+      <div class="progress-label">Palabra ${pronunciaState.index+1} de ${total}</div>
+      <div class="progress-bar"><div style="width:${(pronunciaState.index/total)*100}%; background:${act.c2}"></div></div>
+      <div class="card" id="pronunciaCard" style="--c1:${act.c1};--c2:${act.c2}">
+        <div class="q-eyebrow" style="color:${act.c1}">Di esta palabra en voz alta</div>
+        <div style="font-size:2.6rem; margin:10px 0;">${item.emoji}</div>
+        <h2 class="q-prompt">${item.word}</h2>
+        <button class="mic-btn" id="micBtn" ${soportado?'':'disabled'} onclick="escucharPalabra()">🎤</button>
+        <div class="feedback" id="pronunciaFeedback">
+          ${soportado ? 'Toca el micrófono y di la palabra' : 'Tu navegador no soporta reconocimiento de voz. Prueba con Google Chrome.'}
+        </div>
+        <button class="btn-next hidden" id="pronunciaNextBtn" style="--c1:${act.c1};--c2:${act.c2}" onclick="nextPronuncia()">Siguiente →</button>
+      </div>
+    </div>
+  `;
+}
+
+function escucharPalabra(){
+  if(pronunciaState.answered) return;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition) return;
+
+  const item = pronunciaState.order[pronunciaState.index];
+  const micBtn = document.getElementById('micBtn');
+  const feedback = document.getElementById('pronunciaFeedback');
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'es-PE';
+  recognition.interimResults = false;
+
+  micBtn.classList.add('listening');
+  feedback.textContent = 'Escuchando...';
+  feedback.className = 'feedback';
+
+  recognition.onresult = (event) => {
+    const dicho = event.results[0][0].transcript.trim().toUpperCase();
+    const esperado = item.word.toUpperCase();
+    const correcto = dicho.includes(esperado) || esperado.includes(dicho);
+    marcarResultadoPronuncia(correcto, dicho);
+  };
+  recognition.onerror = () => {
+    micBtn.classList.remove('listening');
+    feedback.textContent = 'No te escuché bien, intenta de nuevo 🎤';
+  };
+  recognition.onend = () => micBtn.classList.remove('listening');
+
+  recognition.start();
+}
+
+function marcarResultadoPronuncia(correcto, dicho){
+  pronunciaState.answered = true;
+  const feedback = document.getElementById('pronunciaFeedback');
+  document.getElementById('micBtn').disabled = true;
+
+  if(correcto){
+    pronunciaState.score++;
+    sumarEstrellas(1);
+    feedback.textContent = `¡Muy bien! Dijiste "${dicho}" 🎉`;
+    feedback.className = 'feedback ok';
+    confettiBurst(document.getElementById('pronunciaCard'));
+  } else {
+    feedback.textContent = `Escuché "${dicho}", intenta de nuevo 💪`;
+    feedback.className = 'feedback bad';
+  }
+  document.getElementById('pronunciaNextBtn').classList.remove('hidden');
+}
+
+function nextPronuncia(){
+  pronunciaState.index++;
+  if(pronunciaState.index < pronunciaState.order.length){
+    pronunciaState.answered = false;
+    renderPronuncia();
+  } else {
+    renderResultPronuncia();
+  }
+}
+
+function renderResultPronuncia(){
+  const act = ACTIVITIES.find(a=>a.id==='pronuncia');
+  const total = pronunciaState.order.length;
+  const pct = pronunciaState.score/total;
+  let stars = 1;
+  if(pct >= 0.9) stars = 3; else if(pct >= 0.6) stars = 2;
+  const starDisplay = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  guardarProgreso('pronuncia', pronunciaState.score, total);
+
+  app.innerHTML = `
+    <div class="quiz-wrap">
+      <div class="card result-card">
+        <div style="font-size:3rem;">🏆</div>
+        <div class="result-stars">${starDisplay}</div>
+        <div class="result-score">${pronunciaState.score} de ${total} palabras bien pronunciadas</div>
+        <p class="result-msg">¡Excelente pronunciación, ${state.name}!</p>
+        <div class="result-actions">
+          <button class="btn-next" style="--c1:${act.c1};--c2:${act.c2}" onclick="startActivity('pronuncia')">Volver a intentar</button>
+          <button class="btn-ghost" onclick="goToMenu()">Volver al menú</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
    ACTIVITY ROUTER
 ========================================================= */
 function startActivity(id){
@@ -793,6 +919,7 @@ function startActivity(id){
   else if(id === 'vocales'){ startVocales(); }
   else if(id === 'sopa'){ startSopa(); }
   else if(id === 'silabas'){ startSilabas(); }
+  else if(id === 'pronuncia'){ startPronuncia(); }
 }
 
 /* =========================================================

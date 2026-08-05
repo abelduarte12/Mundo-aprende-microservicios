@@ -14,6 +14,7 @@ const ACTIVITIES = [
   { id: 'completa', icon: '✏️', title: 'Completa las Palabras', desc: 'Descubre la letra que falta en cada palabra', tag: '10 preguntas', theme: 'completa' },
   { id: 'vocales', icon: '🔤', title: 'Las Vocales', desc: 'Aprende la a, e, i, o, u y complétalas en palabras', tag: '5 tarjetas + 8 preguntas', theme: 'vocal' },
   { id: 'silabas', icon: '🧩', title: 'Palabras con MA, ME, MI, MO, MU...', desc: 'Une sílabas con todas sus vocales y forma palabras divertidas', tag: '8 palabras al azar', theme: 'silaba' },
+  { id: 'pronuncia', icon: '🎤', title: 'Di la Palabra', desc: 'Practica tu pronunciación diciendo la palabra en voz alta', tag: '8 palabras', theme: 'pronuncia' },
 ];
 
 const COMPLETA_WORDS = [
@@ -93,6 +94,17 @@ const SOPA_CATEGORIES = [
 ];
 const SOPA_SIZE = 8;
 
+const PRONUNCIA_WORDS = [
+  { word: 'GATO', emoji: '🐱' },
+  { word: 'PERRO', emoji: '🐶' },
+  { word: 'SOL', emoji: '☀️' },
+  { word: 'LUNA', emoji: '🌙' },
+  { word: 'CASA', emoji: '🏠' },
+  { word: 'FLOR', emoji: '🌸' },
+  { word: 'PEZ', emoji: '🐟' },
+  { word: 'OSO', emoji: '🐻' },
+];
+
 module.exports = {
   ACTIVITIES,
   COMPLETA_WORDS,
@@ -103,4 +115,5 @@ module.exports = {
   SOPA_WORD_POOL,
   SOPA_CATEGORIES,
   SOPA_SIZE,
+  PRONUNCIA_WORDS,
 };

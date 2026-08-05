@@ -25,6 +25,8 @@
   --vocal-b:#FBBF24;
   --silaba-a:#7C3AED;
   --silaba-b:#A78BFA;
+  --pronuncia-a:#DC2626;
+  --pronuncia-b:#F87171;
 
   --radius-lg:28px;
   --radius-md:18px;
@@ -63,6 +65,7 @@ body.theme-sopa{background:linear-gradient(135deg,var(--sopa-a),var(--sopa-b) 12
 body.theme-completa{background:linear-gradient(135deg,var(--completa-a),var(--completa-b) 120%);}
 body.theme-vocal{background:linear-gradient(135deg,var(--vocal-a),var(--vocal-b) 120%);}
 body.theme-silaba{background:linear-gradient(135deg,var(--silaba-a),var(--silaba-b) 120%);}
+body.theme-pronuncia{background:linear-gradient(135deg,var(--pronuncia-a),var(--pronuncia-b) 120%);}
 
 /* floating decorative shapes (login/menu only) */
 .floaters{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none;}
@@ -259,6 +262,19 @@ body.theme-silaba{background:linear-gradient(135deg,var(--silaba-a),var(--silaba
 .feedback.ok{color:#059669;}
 .feedback.bad{color:#DC2626;}
 
+.mic-btn{
+  width:100px;height:100px;border-radius:50%;
+  background:linear-gradient(135deg,var(--c1,#DC2626),var(--c2,#F87171));
+  color:#fff;font-size:2.4rem;
+  display:flex;align-items:center;justify-content:center;
+  margin:20px auto;
+  box-shadow:0 12px 24px rgba(220,38,38,.35);
+  transition:transform .15s ease;
+}
+.mic-btn:hover{transform:scale(1.05);}
+.mic-btn.listening{animation:pulseMic 1s ease-in-out infinite;}
+@keyframes pulseMic{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+.mic-btn:disabled{opacity:.5;cursor:not-allowed;}
 .btn-next{
   margin-top:22px; padding:14px 34px; border-radius:999px; font-weight:800; font-size:1.05rem; color:#fff;
   background:linear-gradient(135deg,var(--c1,#4338CA),var(--c2,#3B82F6));
