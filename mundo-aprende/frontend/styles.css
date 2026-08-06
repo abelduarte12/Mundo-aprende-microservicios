@@ -27,6 +27,14 @@
   --silaba-b:#A78BFA;
   --pronuncia-a:#DC2626;
   --pronuncia-b:#F87171;
+  --colores-a:#C026D3;
+  --colores-b:#E879F9;
+  --ingles-a:#2563EB;
+  --ingles-b:#93C5FD;
+  --comparar-a:#0D9488;
+  --comparar-b:#5EEAD4;
+  --formas-a:#475569;
+  --formas-b:#94A3B8;
 
   --radius-lg:28px;
   --radius-md:18px;
@@ -66,6 +74,10 @@ body.theme-completa{background:linear-gradient(135deg,var(--completa-a),var(--co
 body.theme-vocal{background:linear-gradient(135deg,var(--vocal-a),var(--vocal-b) 120%);}
 body.theme-silaba{background:linear-gradient(135deg,var(--silaba-a),var(--silaba-b) 120%);}
 body.theme-pronuncia{background:linear-gradient(135deg,var(--pronuncia-a),var(--pronuncia-b) 120%);}
+body.theme-colores{background:linear-gradient(135deg,var(--colores-a),var(--colores-b) 120%);}
+body.theme-ingles{background:linear-gradient(135deg,var(--ingles-a),var(--ingles-b) 120%);}
+body.theme-comparar{background:linear-gradient(135deg,var(--comparar-a),var(--comparar-b) 120%);}
+body.theme-formas{background:linear-gradient(135deg,var(--formas-a),var(--formas-b) 120%);}
 
 /* floating decorative shapes (login/menu only) */
 .floaters{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none;}
@@ -379,3 +391,4 @@ footer.app-footer{
   .sopa-cell{width:28px;height:28px;font-size:.82rem;}
   .card{padding:26px 18px;}
 }
+

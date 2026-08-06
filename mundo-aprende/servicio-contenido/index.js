@@ -41,5 +41,13 @@ app.get('/api/contenido/pronuncia', (req, res) => {
   res.json(datos.PRONUNCIA_WORDS);
 });
 
+app.get('/api/contenido/extra', (req, res) => {
+  res.json({
+    colores: datos.COLOR_WORDS,
+    ingles: datos.ENGLISH_WORDS,
+    formas: datos.SHAPE_WORDS,
+  });
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => console.log(`Servicio de contenido escuchando en puerto ${PORT}`));

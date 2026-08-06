@@ -15,6 +15,10 @@ const ACTIVITIES = [
   { id: 'vocales', icon: '🔤', title: 'Las Vocales', desc: 'Aprende la a, e, i, o, u y complétalas en palabras', tag: '5 tarjetas + 8 preguntas', theme: 'vocal' },
   { id: 'silabas', icon: '🧩', title: 'Palabras con MA, ME, MI, MO, MU...', desc: 'Une sílabas con todas sus vocales y forma palabras divertidas', tag: '8 palabras al azar', theme: 'silaba' },
   { id: 'pronuncia', icon: '🎤', title: 'Di la Palabra', desc: 'Practica tu pronunciación diciendo la palabra en voz alta', tag: '8 palabras', theme: 'pronuncia' },
+  { id: 'colores', icon: '🎨', title: 'Los Colores', desc: 'Identifica el color de cada objeto', tag: '8 preguntas', theme: 'colores' },
+  { id: 'ingles', icon: '🌎', title: 'Inglés Básico', desc: 'Aprende cómo se dicen los animales en inglés', tag: '10 preguntas', theme: 'ingles' },
+  { id: 'comparar', icon: '⚖️', title: 'Mayor o Menor', desc: 'Elige el grupo que tiene más elementos', tag: '10 preguntas', theme: 'comparar' },
+  { id: 'formas', icon: '🔷', title: 'Formas Geométricas', desc: 'Reconoce círculos, cuadrados, triángulos y más', tag: '6 preguntas', theme: 'formas' },
 ];
 
 const COMPLETA_WORDS = [
@@ -105,6 +109,39 @@ const PRONUNCIA_WORDS = [
   { word: 'OSO', emoji: '🐻' },
 ];
 
+const COLOR_WORDS = [
+  { emoji: '🍎', color: 'Rojo' },
+  { emoji: '🍌', color: 'Amarillo' },
+  { emoji: '🍇', color: 'Morado' },
+  { emoji: '🥦', color: 'Verde' },
+  { emoji: '🍊', color: 'Naranja' },
+  { emoji: '🫐', color: 'Azul' },
+  { emoji: '🍫', color: 'Marrón' },
+  { emoji: '🐘', color: 'Gris' },
+];
+
+const ENGLISH_WORDS = [
+  { emoji: '🐶', spanish: 'Perro', english: 'Dog' },
+  { emoji: '🐱', spanish: 'Gato', english: 'Cat' },
+  { emoji: '🐘', spanish: 'Elefante', english: 'Elephant' },
+  { emoji: '🦁', spanish: 'León', english: 'Lion' },
+  { emoji: '🐦', spanish: 'Pájaro', english: 'Bird' },
+  { emoji: '🐟', spanish: 'Pez', english: 'Fish' },
+  { emoji: '🐴', spanish: 'Caballo', english: 'Horse' },
+  { emoji: '🐮', spanish: 'Vaca', english: 'Cow' },
+  { emoji: '🐷', spanish: 'Cerdo', english: 'Pig' },
+  { emoji: '🐸', spanish: 'Rana', english: 'Frog' },
+];
+
+const SHAPE_WORDS = [
+  { emoji: '⭕', shape: 'Círculo' },
+  { emoji: '⬛', shape: 'Cuadrado' },
+  { emoji: '🔺', shape: 'Triángulo' },
+  { emoji: '⭐', shape: 'Estrella' },
+  { emoji: '🔷', shape: 'Rombo' },
+  { emoji: '❤️', shape: 'Corazón' },
+];
+
 module.exports = {
   ACTIVITIES,
   COMPLETA_WORDS,
@@ -116,4 +153,7 @@ module.exports = {
   SOPA_CATEGORIES,
   SOPA_SIZE,
   PRONUNCIA_WORDS,
+  COLOR_WORDS,
+  ENGLISH_WORDS,
+  SHAPE_WORDS,
 };

@@ -49,13 +49,14 @@ function guardarProgreso(actividad, puntaje, total) {
 let CONTENIDO_LISTO = false;
 
 async function cargarContenido() {
-  const [actividades, completa, vocales, silabas, sopa, pronuncia] = await Promise.all([
+  const [actividades, completa, vocales, silabas, sopa, pronuncia, extra] = await Promise.all([
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/actividades`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/completa`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/vocales`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/silabas`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/sopa`).then(r => r.json()),
     fetch(`${API_CONFIG.CONTENIDO}/api/contenido/pronuncia`).then(r => r.json()),
+    fetch(`${API_CONFIG.CONTENIDO}/api/contenido/extra`).then(r => r.json()),
   ]);
   ACTIVITIES = actividades.map(a => ({
     ...a,
@@ -71,6 +72,9 @@ async function cargarContenido() {
   SOPA_CATEGORIES = sopa.categorias;
   SOPA_SIZE = sopa.tamano;
   PRONUNCIA_WORDS = pronuncia;
+  COLOR_WORDS = extra.colores;
+  ENGLISH_WORDS = extra.ingles;
+  SHAPE_WORDS = extra.formas;
   CONTENIDO_LISTO = true;
 }
 
@@ -290,6 +294,9 @@ function genContar(){
 
 // COMPLETA_WORDS ahora se carga desde el servicio de contenido.
 let COMPLETA_WORDS = [];
+let COLOR_WORDS = [];
+let ENGLISH_WORDS = [];
+let SHAPE_WORDS = [];
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 function genCompleta(){
@@ -327,6 +334,67 @@ function genVocalesQuiz(){
       correct: correctLetter,
     };
   });
+}
+
+function genColores(){
+  return shuffle(COLOR_WORDS).map(item => {
+    const set = new Set([item.color]);
+    while(set.size < 4) set.add(COLOR_WORDS[randInt(0,COLOR_WORDS.length-1)].color);
+    return {
+      eyebrow:'Colores',
+      prompt:'¿De qué color es esto?',
+      visual: `<span style="font-size:3rem;">${item.emoji}</span>`,
+      options: shuffle(Array.from(set)).map(c => ({label:c, value:c})),
+      correct: item.color,
+    };
+  });
+}
+
+function genIngles(){
+  return shuffle(ENGLISH_WORDS).map(item => {
+    const set = new Set([item.english]);
+    while(set.size < 4) set.add(ENGLISH_WORDS[randInt(0,ENGLISH_WORDS.length-1)].english);
+    return {
+      eyebrow:'Inglés',
+      prompt:`¿Cómo se dice "${item.spanish}" en inglés?`,
+      visual: `<span style="font-size:3rem;">${item.emoji}</span>`,
+      options: shuffle(Array.from(set)).map(e => ({label:e, value:e})),
+      correct: item.english,
+    };
+  });
+}
+
+function genFormas(){
+  return shuffle(SHAPE_WORDS).map(item => {
+    const set = new Set([item.shape]);
+    while(set.size < 4) set.add(SHAPE_WORDS[randInt(0,SHAPE_WORDS.length-1)].shape);
+    return {
+      eyebrow:'Formas',
+      prompt:'¿Qué forma es esta?',
+      visual: `<span style="font-size:3.4rem;">${item.emoji}</span>`,
+      options: shuffle(Array.from(set)).map(s => ({label:s, value:s})),
+      correct: item.shape,
+    };
+  });
+}
+
+function genComparar(){
+  const emojisPool = ['🍓','⭐','🎈','🍪','🐟','🌸'];
+  const qs = [];
+  for(let i=0;i<10;i++){
+    const emoji = emojisPool[randInt(0,emojisPool.length-1)];
+    let a = randInt(1,8), b = randInt(1,8);
+    while(a === b) b = randInt(1,8);
+    const mayor = a > b ? 'Izquierda' : 'Derecha';
+    qs.push({
+      eyebrow:'¿Cuál grupo tiene más?',
+      prompt:'Elige el grupo con más elementos',
+      visual: `<div style="display:flex;align-items:center;justify-content:center;gap:18px;">${emojiGroup(a,emoji)}<span class="op">vs</span>${emojiGroup(b,emoji)}</div>`,
+      options: [{label:'Izquierda', value:'Izquierda'},{label:'Derecha', value:'Derecha'}],
+      correct: mayor,
+    });
+  }
+  return qs;
 }
 
 /* =========================================================
@@ -920,6 +988,10 @@ function startActivity(id){
   else if(id === 'sopa'){ startSopa(); }
   else if(id === 'silabas'){ startSilabas(); }
   else if(id === 'pronuncia'){ startPronuncia(); }
+  else if(id === 'colores'){ state.questions = genColores(); renderQuestionScreen(); }
+  else if(id === 'ingles'){ state.questions = genIngles(); renderQuestionScreen(); }
+  else if(id === 'comparar'){ state.questions = genComparar(); renderQuestionScreen(); }
+  else if(id === 'formas'){ state.questions = genFormas(); renderQuestionScreen(); }
 }
 
 /* =========================================================
