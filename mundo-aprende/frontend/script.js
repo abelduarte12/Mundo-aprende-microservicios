@@ -9,6 +9,8 @@ const state = {
   score: 0,
   questions: [],
   answered: false,
+  loginTime: null,      // NUEVO: para calcular el indicador %AT
+  activityStart: null,  // NUEVO: duración de cada actividad
 };
 
 const app = document.getElementById('app');
@@ -39,11 +41,27 @@ function sumarEstrellas(cantidad) {
 }
 
 function guardarProgreso(actividad, puntaje, total) {
+  // Duración de ESTA actividad (segundos desde que se abrió con startActivity)
+  const duracion = state.activityStart
+    ? Math.round((Date.now() - state.activityStart) / 1000)
+    : 0;
+
   fetch(`${API_CONFIG.PROGRESO}/api/progreso`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nombre: state.name, actividad, puntaje, total }),
+    body: JSON.stringify({ nombre: state.name, actividad, puntaje, total, duracion }),
   }).catch(err => console.warn('No se pudo guardar el progreso en el servidor:', err));
+
+  // NUEVO: avisa cuánto tiempo total lleva conectado el alumno hoy
+  // (se usa para el indicador %AT). Es "dispara y olvida", no bloquea el juego.
+  if (state.loginTime) {
+    const segundosSesion = Math.round((Date.now() - state.loginTime) / 1000);
+    fetch(`${API_CONFIG.USUARIOS}/api/usuarios/${encodeURIComponent(state.name)}/sesion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ segundos: segundosSesion }),
+    }).catch(err => console.warn('No se pudo guardar la sesión en el servidor:', err));
+  }
 }
 
 let CONTENIDO_LISTO = false;
@@ -191,6 +209,7 @@ function showLogin(){
       const usuario = await apiLogin(val);
       state.name = usuario.nombre;
       state.totalStars = usuario.estrellas;
+      state.loginTime = Date.now(); // NUEVO: inicio de sesión, para %AT
       goToMenu();
     } catch(err){
       console.error(err);
@@ -222,14 +241,87 @@ function goToMenu(){
     </div>
   `).join('');
 
+  // NUEVO: tarjeta de Indicadores, con el mismo estilo que las de actividad
+  const cardIndicadores = `
+    <div class="activity-card" style="--c1:var(--menu-a);--c2:var(--menu-b)" onclick="verIndicadores()">
+      <div class="icon">📊</div>
+      <div class="eyebrow">Mi avance</div>
+      <h3>Indicadores</h3>
+      <p>Revisa tus resultados: tiempo, participación, notas y más</p>
+      <span class="tag">Resumen personal</span>
+    </div>
+  `;
+
   app.innerHTML = `
     <div class="menu-head">
       <div class="menu-badge">🌟</div>
       <h2 class="menu-title">¡Hola, ${state.name}!</h2>
       <p class="menu-sub">Elige una actividad para empezar a jugar</p>
     </div>
-    <div class="menu-grid">${cards}</div>
+    <div class="menu-grid">${cards}${cardIndicadores}</div>
   `;
+}
+
+/* =========================================================
+   INDICADORES (matriz de la tesis)
+========================================================= */
+async function verIndicadores(){
+  setBodyTheme('menu');
+  renderFloaters(true);
+  renderTopbar('menu');
+  app.innerHTML = `
+    <div class="quiz-wrap">
+      <div class="card result-card" id="indicadoresCard">
+        <div style="font-size:2.6rem;">📊</div>
+        <h3 style="margin:6px 0 18px;">Mis indicadores</h3>
+        <p class="result-msg">Cargando tus resultados...</p>
+      </div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${API_CONFIG.PROGRESO}/api/indicadores/${encodeURIComponent(state.name)}`);
+    if (!res.ok) throw new Error('Respuesta no válida');
+    const d = await res.json();
+
+    const filas = [
+      ['⏱️', 'Tiempo de atención', d.tiempoAtencion.valor, '%'],
+      ['🎮', 'Participación en actividades', d.participacionActividades.valor, '%'],
+      ['📚', 'Promedio de notas', d.promedioNotasBimestrales.valor, '/20'],
+      ['🎤', 'Pronunciación', d.pronunciacionLectura.valor, ' palabras/min'],
+      ['🧠', 'Nivel de razonamiento', d.lecturaRazonamiento.valor, '/5'],
+    ];
+
+    const filasHTML = filas.map(([icono, nombre, valor, unidad]) => `
+      <div class="indicador-fila">
+        <span class="indicador-icono">${icono}</span>
+        <span class="indicador-nombre">${nombre}</span>
+        <span class="indicador-valor">${valor == null ? 'Sin datos aún' : valor + unidad}</span>
+      </div>
+    `).join('');
+
+    document.getElementById('indicadoresCard').innerHTML = `
+      <div style="font-size:2.6rem;">📊</div>
+      <h3 style="margin:6px 0 18px;">Indicadores de ${state.name}</h3>
+      <div class="indicador-lista">${filasHTML}</div>
+      <p class="result-msg" style="margin-top:18px; font-size:.8rem;">
+        Los indicadores se actualizan cada vez que terminas una actividad.
+      </p>
+      <div class="result-actions">
+        <button class="btn-ghost" onclick="goToMenu()">Volver al menú</button>
+      </div>
+    `;
+  } catch (err) {
+    console.warn('No se pudieron cargar los indicadores:', err);
+    document.getElementById('indicadoresCard').innerHTML = `
+      <div style="font-size:2.6rem;">📊</div>
+      <h3 style="margin:6px 0 18px;">Mis indicadores</h3>
+      <p class="result-msg">No se pudo conectar con el servicio de progreso. Intenta de nuevo más tarde.</p>
+      <div class="result-actions">
+        <button class="btn-ghost" onclick="goToMenu()">Volver al menú</button>
+      </div>
+    `;
+  }
 }
 
 /* =========================================================
@@ -979,6 +1071,7 @@ function startActivity(id){
   state.qIndex = 0;
   state.score = 0;
   state.answered = false;
+  state.activityStart = Date.now(); // NUEVO: para el indicador de duración
 
   if(id === 'suma'){ state.questions = genSuma(); renderQuestionScreen(); }
   else if(id === 'resta'){ state.questions = genResta(); renderQuestionScreen(); }

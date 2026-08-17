@@ -304,6 +304,17 @@ body.theme-formas{background:linear-gradient(135deg,var(--formas-a),var(--formas
 .result-score{font-size:1.6rem; font-weight:800; margin-bottom:6px;}
 .result-msg{color:var(--ink-soft); font-weight:700; margin-bottom:26px;}
 .result-actions{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+
+/* NUEVO: lista de indicadores dentro de la card */
+.indicador-lista{ display:flex; flex-direction:column; gap:10px; text-align:left; }
+.indicador-fila{
+  display:flex; align-items:center; gap:10px;
+  background:#F6F5FF; border-radius:12px; padding:10px 14px;
+}
+.indicador-icono{ font-size:1.3rem; }
+.indicador-nombre{ flex:1; font-weight:700; font-size:.92rem; color:var(--ink); }
+.indicador-valor{ font-weight:800; font-size:.95rem; color:var(--menu-a); white-space:nowrap; }
+
 .btn-ghost{
   padding:14px 26px; border-radius:999px; font-weight:800; background:#F3F1FF; color:var(--ink);
 }
@@ -391,4 +402,3 @@ footer.app-footer{
   .sopa-cell{width:28px;height:28px;font-size:.82rem;}
   .card{padding:26px 18px;}
 }
-
