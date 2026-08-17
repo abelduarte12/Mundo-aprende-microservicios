@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mundo Aprende — Dashboard de Indicadores</title>
+<script src="config.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6fb;
+    margin: 0;
+    padding: 24px;
+    color: #22314a;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  p.subtitle { color: #5a6a85; margin-top: 0; margin-bottom: 20px; }
+  .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+  select, button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.95rem;
+  }
+  button {
+    background: #4f6df5;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  button:hover { background: #3b57d9; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  th, td {
+    padding: 10px 12px;
+    text-align: center;
+    border-bottom: 1px solid #eef1f7;
+    font-size: 0.88rem;
+  }
+  th {
+    background: #eef1ff;
+    color: #33406b;
+    font-weight: 600;
+  }
+  td:first-child, th:first-child { text-align: left; font-weight: 600; }
+  .na { color: #a1aab8; font-style: italic; }
+  .estado { padding: 24px; text-align: center; color: #5a6a85; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-alto { background: #d1f7e0; color: #0a7a45; }
+  .badge-medio { background: #fff3cd; color: #8a6d00; }
+  .badge-bajo { background: #fde2e1; color: #b3261e; }
+</style>
+</head>
+<body>
+  <h1>📊 Dashboard de Indicadores — Mundo Aprende</h1>
+  <p class="subtitle">Cálculo automático de los indicadores de la matriz de tesis, a partir del progreso registrado en el sistema.</p>
+
+  <div class="toolbar">
+    <button id="btnRefrescar">🔄 Actualizar</button>
+    <span id="estadoTexto" style="color:#5a6a85; font-size:0.9rem;"></span>
+  </div>
+
+  <div id="contenedor">
+    <div class="estado">Cargando indicadores...</div>
+  </div>
+
+<script>
+function badge(valor, umbralAlto, umbralMedio) {
+  if (valor == null) return '<span class="na">No disponible</span>';
+  let clase = 'badge-bajo';
+  if (valor >= umbralAlto) clase = 'badge-alto';
+  else if (valor >= umbralMedio) clase = 'badge-medio';
+  return `<span class="badge ${clase}">${valor}</span>`;
+}
+
+function fmt(valor, unidad) {
+  if (valor == null) return '<span class="na">No disponible</span>';
+  return `${valor}${unidad}`;
+}
+
+async function cargarIndicadores() {
+  const contenedor = document.getElementById('contenedor');
+  const estadoTexto = document.getElementById('estadoTexto');
+  contenedor.innerHTML = '<div class="estado">Cargando indicadores...</div>';
+  try {
+    const res = await fetch(`${API_CONFIG.PROGRESO}/api/indicadores`);
+    if (!res.ok) throw new Error('Respuesta no válida del servidor');
+    const alumnos = await res.json();
+
+    if (!alumnos.length) {
+      contenedor.innerHTML = '<div class="estado">Todavía no hay alumnos con progreso registrado.</div>';
+      return;
+    }
+
+    let filas = '';
+    for (const a of alumnos) {
+      filas += `
+        <tr>
+          <td>${a.nombre}</td>
+          <td>${badge(a.tiempoAtencion.valor, 70, 40)}</td>
+          <td>${badge(a.participacionActividades.valor, 70, 40)}</td>
+          <td>${fmt(a.promedioNotasBimestrales.valor, '/20')}</td>
+          <td>${fmt(a.pronunciacionLectura.valor, ' palabras/min')}</td>
+          <td>${fmt(a.lecturaRazonamiento.valor, '/5')}</td>
+        </tr>`;
+    }
+
+    contenedor.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Alumno</th>
+            <th>%AT<br><small>Tiempo de atención</small></th>
+            <th>%ACTIVIDADES<br><small>Participación</small></th>
+            <th>NOTA<br><small>Promedio bimestral</small></th>
+            <th>VOCABULARIO<br><small>Pronunciación</small></th>
+            <th>NIVEL<br><small>Razonamiento (últ. semana)</small></th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>`;
+    estadoTexto.textContent = `Actualizado: ${new Date().toLocaleTimeString('es-PE')}`;
+  } catch (err) {
+    console.error(err);
+    contenedor.innerHTML = '<div class="estado">No se pudo conectar con el servicio de progreso. Revisa que esté encendido.</div>';
+  }
+}
+
+document.getElementById('btnRefrescar').addEventListener('click', cargarIndicadores);
+cargarIndicadores();
+</script>
+</body>
+</html>
