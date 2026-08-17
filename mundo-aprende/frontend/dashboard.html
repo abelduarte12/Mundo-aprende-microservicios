@@ -78,12 +78,17 @@
   </div>
 
 <script>
-function badge(valor, umbralAlto, umbralMedio) {
+function badge(valor, umbralAlto, umbralMedio, decimales = 0) {
   if (valor == null) return '<span class="na">No disponible</span>';
+
+  const numero = Number(valor);
+  const texto = Number.isFinite(numero) ? numero.toFixed(decimales) : valor;
+
   let clase = 'badge-bajo';
-  if (valor >= umbralAlto) clase = 'badge-alto';
-  else if (valor >= umbralMedio) clase = 'badge-medio';
-  return `<span class="badge ${clase}">${valor}</span>`;
+  if (numero >= umbralAlto) clase = 'badge-alto';
+  else if (numero >= umbralMedio) clase = 'badge-medio';
+
+  return `<span class="badge ${clase}">${texto}</span>`;
 }
 
 function fmt(valor, unidad) {
@@ -110,7 +115,7 @@ async function cargarIndicadores() {
       filas += `
         <tr>
           <td>${a.nombre}</td>
-          <td>${badge(a.tiempoAtencion.valor, 70, 40)}</td>
+          <td>${badge(a.tiempoAtencion.valor, 70, 40, 2)}</td>
           <td>${badge(a.participacionActividades.valor, 70, 40)}</td>
           <td>${fmt(a.promedioNotasBimestrales.valor, '/20')}</td>
           <td>${fmt(a.pronunciacionLectura.valor, ' palabras/min')}</td>
