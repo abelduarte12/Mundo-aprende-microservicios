@@ -90,7 +90,20 @@ app.get('/api/usuarios/:nombre', async (req, res) => {
     res.status(500).json({ error: 'Error al consultar usuario' });
   }
 });
-
+// -----------------------------------------------------------------------
+// Lista de todos los alumnos registrados (para el dashboard del profesor)
+app.get('/api/usuarios', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT nombre, estrellas, creado_en FROM usuarios ORDER BY nombre ASC'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al listar usuarios' });
+  }
+});
+//----------------------------------------------------------------------------
 const PORT = process.env.PORT || 3001;
 initDB()
   .then(() => app.listen(PORT, () => console.log(`Servicio de usuarios escuchando en puerto ${PORT}`)))
