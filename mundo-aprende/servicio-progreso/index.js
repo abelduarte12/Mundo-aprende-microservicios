@@ -156,7 +156,9 @@ async function calcularIndicadores(nombre) {
   );
   const tiempoTotal = Number(sesion.rows[0].tiempo_total);
   const tiempoAtencion = Number(atencion.rows[0].tiempo_atencion);
-  const porcentajeAtencion = tiempoTotal > 0 ? (tiempoAtencion / tiempoTotal) * 100 : null;
+  const porcentajeAtencion = tiempoTotal > 0
+    ? Number(((tiempoAtencion / tiempoTotal) * 100).toFixed(2))
+    : null;
 
   // 2) %ACTIVIDADES = Participaciones (actividades distintas) / Actividades Totales x 100
   const distintas = await pool.query(

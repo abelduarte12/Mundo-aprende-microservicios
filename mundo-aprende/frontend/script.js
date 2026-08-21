@@ -285,7 +285,9 @@ async function verIndicadores(){
     const d = await res.json();
 
     const filas = [
-      ['⏱️', 'Tiempo de atención', d.tiempoAtencion.valor, '%'],
+      ['⏱️', 'Tiempo de atención', d.tiempoAtencion.valor == null
+        ? null
+        : Number(d.tiempoAtencion.valor).toFixed(2), '%'],
       ['🎮', 'Participación en actividades', d.participacionActividades.valor, '%'],
       ['📚', 'Promedio de notas', d.promedioNotasBimestrales.valor, '/20'],
       ['🎤', 'Pronunciación', d.pronunciacionLectura.valor, ' palabras/min'],
