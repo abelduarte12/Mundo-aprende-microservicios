@@ -197,7 +197,7 @@ async function calcularIndicadores(nombre) {
   );
   const minutosPronuncia = Number(pronuncia.rows[0].segundos) / 60;
   const vocabulario = minutosPronuncia > 0
-    ? Number((Number(pronuncia.rows[0].correctas) / minutosPronuncia).toFixed(2))
+    ? Number((Number(pronuncia.rows[0].correctas) / minutosPronuncia).toFixed(0))
     : null;
 
   // 5) NIVEL RAZONAMIENTO = Suma de Puntos (escala 1-5) / Total Actividad Semanal
