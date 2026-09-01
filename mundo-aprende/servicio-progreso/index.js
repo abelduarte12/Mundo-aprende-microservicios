@@ -52,6 +52,16 @@ const CURSOS = {
 // Debe coincidir con la cantidad de actividades en servicio-contenido/datos.js (ACTIVITIES.length)
 const TOTAL_ACTIVIDADES_DISPONIBLES = 12;
 
+// Determina el bimestre académico actual según el mes de hoy
+function obtenerBimestreActual() {
+  const mes = new Date().getMonth() + 1; // 1 = enero, 12 = diciembre
+  if ([3, 4, 5].includes(mes))   return { numero: 1, meses: [3, 4, 5],  nombre: '1er bimestre (marzo-abril-mayo)' };
+  if ([6, 7, 8].includes(mes))   return { numero: 2, meses: [6, 7, 8],  nombre: '2do bimestre (junio-julio-agosto)' };
+  if ([9, 10].includes(mes))     return { numero: 3, meses: [9, 10],    nombre: '3er bimestre (setiembre-octubre)' };
+  if ([11, 12].includes(mes))    return { numero: 4, meses: [11, 12],   nombre: '4to bimestre (noviembre-diciembre)' };
+  return { numero: 0, meses: [1, 2], nombre: 'Fuera de bimestre (enero-febrero)' };
+}
+
 // Calcula los 5 indicadores de la matriz de la tesis para UN alumno.
 async function calcularIndicadores(nombre) {
   // 1) %AT = Tiempo Atención / Tiempo Total x 100  (del día de hoy)
@@ -79,10 +89,15 @@ async function calcularIndicadores(nombre) {
   const porcentajeActividades =
     (Number(distintas.rows[0].n) / TOTAL_ACTIVIDADES_DISPONIBLES) * 100;
 
-  // 3) NOTA = promedio de notas (0-20) agrupadas por "curso"
+  // 3) NOTA = promedio de notas (0-20) agrupadas por "curso", SOLO del bimestre actual
+  const bimestreActual = obtenerBimestreActual();
+  const anioActual = new Date().getFullYear();
   const filas = await pool.query(
-    `SELECT actividad, puntaje, total FROM progreso WHERE nombre = $1`,
-    [nombre]
+    `SELECT actividad, puntaje, total FROM progreso
+     WHERE nombre = $1
+       AND EXTRACT(MONTH FROM fecha) = ANY($2::int[])
+       AND EXTRACT(YEAR FROM fecha) = $3`,
+    [nombre, bimestreActual.meses, anioActual]
   );
   const sumaPorCurso = {};
   const cantPorCurso = {};
@@ -129,7 +144,7 @@ async function calcularIndicadores(nombre) {
     nombre,
     tiempoAtencion: { valor: porcentajeAtencion, unidad: '%' },
     participacionActividades: { valor: Number(porcentajeActividades.toFixed(1)), unidad: '%' },
-    promedioNotasBimestrales: { valor: promedioBimestral, unidad: '/20', porCurso: notasPorCurso },
+    promedioNotasBimestrales: { valor: promedioBimestral, unidad: '/20', porCurso: notasPorCurso, bimestre: bimestreActual.nombre },
     pronunciacionLectura: { valor: vocabulario, unidad: 'palabras/min' },
     lecturaRazonamiento: { valor: nivelRazonamiento, unidad: '/5 (última semana)' },
   };
