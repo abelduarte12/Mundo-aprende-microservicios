@@ -67,6 +67,7 @@
 <body>
   <h1>📊 Dashboard de Indicadores — Mundo Aprende</h1>
   <p class="subtitle">Cálculo automático de los indicadores de la matriz de tesis, a partir del progreso registrado en el sistema.</p>
+  <p class="subtitle" style="font-weight:600; color:#4f6df5;">📅 <span id="bimestreActual"></span></p>
 
   <div class="toolbar">
     <button id="btnRefrescar">🔄 Actualizar</button>
@@ -96,7 +97,18 @@ function fmt(valor, unidad) {
   return `${valor}${unidad}`;
 }
 
+function obtenerBimestreActual() {
+  const mes = new Date().getMonth() + 1;
+  if ([3, 4, 5].includes(mes))  return '1er bimestre (marzo-abril-mayo)';
+  if ([6, 7, 8].includes(mes))  return '2do bimestre (junio-julio-agosto)';
+  if ([9, 10].includes(mes))    return '3er bimestre (setiembre-octubre)';
+  if ([11, 12].includes(mes))   return '4to bimestre (noviembre-diciembre)';
+  return 'Fuera de bimestre (enero-febrero)';
+}
+
 async function cargarIndicadores() {
+  document.getElementById('bimestreActual').textContent = 'Mostrando NOTA de: ' + obtenerBimestreActual();
+  document.getElementById('thBimestre').textContent = obtenerBimestreActual();
   const contenedor = document.getElementById('contenedor');
   const estadoTexto = document.getElementById('estadoTexto');
   contenedor.innerHTML = '<div class="estado">Cargando indicadores...</div>';
@@ -130,7 +142,7 @@ async function cargarIndicadores() {
             <th>Alumno</th>
             <th>%AT<br><small>Tiempo de atención</small></th>
             <th>%ACTIVIDADES<br><small>Participación</small></th>
-            <th>NOTA<br><small>Promedio bimestral</small></th>
+            <th>NOTA<br><small id="thBimestre">Promedio bimestral</small></th>
             <th>VOCABULARIO<br><small>Pronunciación</small></th>
             <th>NIVEL<br><small>Razonamiento (últ. semana)</small></th>
           </tr>
