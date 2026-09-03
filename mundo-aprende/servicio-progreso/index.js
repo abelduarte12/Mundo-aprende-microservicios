@@ -115,14 +115,27 @@ async function calcularIndicadores(nombre) {
     ? Number((notasPorCurso.reduce((a, c) => a + c.nota, 0) / notasPorCurso.length).toFixed(1))
     : null;
 
-  // 4) VOCABULARIO = Palabras Correctas / Total Minutos (solo actividad "pronuncia")
+  // 4) FLUIDEZ LECTORA (WCPM - Words Correct Per Minute)
+  // Mide la velocidad de lectura correcta: palabras reconocidas como
+  // correctas por el sistema de reconocimiento de voz (Web Speech API)
+  // por minuto, en la actividad de pronunciación. NO mide precisión
+  // fonética/articulatoria — el instrumento no hace ese tipo de análisis.
   const pronuncia = await pool.query(
-    `SELECT COALESCE(SUM(puntaje),0) AS correctas, COALESCE(SUM(duracion_segundos),0) AS segundos
+    `SELECT COALESCE(SUM(puntaje),0) AS correctas,
+            COALESCE(SUM(duracion_segundos),0) AS segundos,
+            COUNT(*) AS intentos
      FROM progreso WHERE nombre = $1 AND actividad = 'pronuncia'`,
     [nombre]
   );
   const minutosPronuncia = Number(pronuncia.rows[0].segundos) / 60;
-  const vocabulario = minutosPronuncia > 0
+  const intentosPronuncia = Number(pronuncia.rows[0].intentos);
+
+  // Umbral mínimo de confiabilidad: evita tasas infladas por sesiones
+  // demasiado cortas o con muy pocos intentos registrados.
+  const MIN_MINUTOS_FLUIDEZ = 0.2;   // 12 segundos
+  const MIN_INTENTOS_FLUIDEZ = 3;
+
+  const fluidezLectora = (minutosPronuncia >= MIN_MINUTOS_FLUIDEZ && intentosPronuncia >= MIN_INTENTOS_FLUIDEZ)
     ? Number((Number(pronuncia.rows[0].correctas) / minutosPronuncia).toFixed(0))
     : null;
 
@@ -145,7 +158,7 @@ async function calcularIndicadores(nombre) {
     tiempoAtencion: { valor: porcentajeAtencion, unidad: '%' },
     participacionActividades: { valor: Number(porcentajeActividades.toFixed(1)), unidad: '%' },
     promedioNotasBimestrales: { valor: promedioBimestral, unidad: '/20', porCurso: notasPorCurso, bimestre: bimestreActual.nombre },
-    pronunciacionLectura: { valor: vocabulario, unidad: 'palabras/min' },
+    fluidezLectora: { valor: fluidezLectora, unidad: 'palabras correctas/min (WCPM)' },
     lecturaRazonamiento: { valor: nivelRazonamiento, unidad: '/5 (última semana)' },
   };
 }

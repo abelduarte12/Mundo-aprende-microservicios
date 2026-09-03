@@ -130,7 +130,7 @@ async function cargarIndicadores() {
           <td>${badge(a.tiempoAtencion.valor, 70, 40, 2)}</td>
           <td>${badge(a.participacionActividades.valor, 70, 40)}</td>
           <td>${fmt(a.promedioNotasBimestrales.valor, '/20')}</td>
-          <td>${fmt(a.pronunciacionLectura.valor, ' palabras/min')}</td>
+          <td>${fmt(a.fluidezLectora.valor, ' palabras/min')}</td>
           <td>${fmt(a.lecturaRazonamiento.valor, '/5')}</td>
         </tr>`;
     }
@@ -143,7 +143,7 @@ async function cargarIndicadores() {
             <th>%AT<br><small>Tiempo de atención</small></th>
             <th>%ACTIVIDADES<br><small>Participación</small></th>
             <th>NOTA<br><small id="thBimestre">Promedio bimestral</small></th>
-            <th>VOCABULARIO<br><small>Pronunciación</small></th>
+            <th>FLUIDEZ LECTORA<br><small>palabras correctas/min</small></th>
             <th>NIVEL<br><small>Razonamiento (últ. semana)</small></th>
           </tr>
         </thead>
