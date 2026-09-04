@@ -290,7 +290,7 @@ async function verIndicadores(){
         : Number(d.tiempoAtencion.valor).toFixed(2), '%'],
       ['🎮', 'Participación en actividades', d.participacionActividades.valor, '%'],
       ['📚', 'Promedio de notas', d.promedioNotasBimestrales.valor, '/20'],
-      ['🎤', 'Pronunciación', d.pronunciacionLectura.valor, ' palabras/min'],
+      ['🎤', 'Fluidez lectora', d.fluidezLectora.valor, ' palabras/min'],
       ['🧠', 'Nivel de razonamiento', d.lecturaRazonamiento.valor, '/5'],
     ];
 
