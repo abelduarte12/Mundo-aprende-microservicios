@@ -465,7 +465,7 @@ function genFormas(){
     return {
       eyebrow:'Formas',
       prompt:'¿Qué forma es esta?',
-      visual: `<span style="font-size:3.4rem;">${item.emoji}</span>`,
+      visual: `<span style="font-size:6.8rem;">${item.emoji}</span>`,
       options: shuffle(Array.from(set)).map(s => ({label:s, value:s})),
       correct: item.shape,
     };
