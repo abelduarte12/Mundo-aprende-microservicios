@@ -403,7 +403,7 @@ function genCompleta(){
     return {
       eyebrow:'Completa la palabra',
       prompt:`${display}`,
-      visual: `<span style="font-size:2.6rem;">${item.emoji}</span>`,
+      visual: `<span style="font-size:5.2rem;">${item.emoji}</span>`,
       options: shuffle(Array.from(set)).map(l => ({label:l, value:l})),
       correct: correctLetter,
     };
@@ -423,7 +423,7 @@ function genVocalesQuiz(){
     return {
       eyebrow:'¿Qué vocal falta?',
       prompt:`${display}`,
-      visual: `<span style="font-size:2.6rem;">${item.emoji}</span>`,
+      visual: `<span style="font-size:5.2rem;">${item.emoji}</span>`,
       options: shuffle(VOWELS).map(v=>({label:v, value:v})),
       correct: correctLetter,
     };
@@ -437,7 +437,7 @@ function genColores(){
     return {
       eyebrow:'Colores',
       prompt:'¿De qué color es esto?',
-      visual: `<span style="font-size:3rem;">${item.emoji}</span>`,
+      visual: `<span style="font-size:6rem;">${item.emoji}</span>`,
       options: shuffle(Array.from(set)).map(c => ({label:c, value:c})),
       correct: item.color,
     };
@@ -451,7 +451,7 @@ function genIngles(){
     return {
       eyebrow:'Inglés',
       prompt:`¿Cómo se dice "${item.spanish}" en inglés?`,
-      visual: `<span style="font-size:3rem;">${item.emoji}</span>`,
+      visual: `<span style="font-size:6rem;">${item.emoji}</span>`,
       options: shuffle(Array.from(set)).map(e => ({label:e, value:e})),
       correct: item.english,
     };
@@ -483,7 +483,7 @@ function genComparar(){
     qs.push({
       eyebrow:'¿Cuál grupo tiene más?',
       prompt:'Elige el grupo con más elementos',
-      visual: `<div style="display:flex;align-items:center;justify-content:center;gap:18px;">${emojiGroup(a,emoji)}<span class="op">vs</span>${emojiGroup(b,emoji)}</div>`,
+      visual: `<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:18px;">${emojiGroup(a,emoji)}<span class="op">vs</span>${emojiGroup(b,emoji)}</div>`,
       options: [{label:'Izquierda', value:'Izquierda'},{label:'Derecha', value:'Derecha'}],
       correct: mayor,
     });
@@ -952,7 +952,7 @@ function renderPronuncia(){
       <div class="progress-bar"><div style="width:${(pronunciaState.index/total)*100}%; background:${act.c2}"></div></div>
       <div class="card" id="pronunciaCard" style="--c1:${act.c1};--c2:${act.c2}">
         <div class="q-eyebrow" style="color:${act.c1}">Di esta palabra en voz alta</div>
-        <div style="font-size:2.6rem; margin:10px 0;">${item.emoji}</div>
+        <div style="font-size:5.2rem; margin:10px 0;">${item.emoji}</div>
         <h2 class="q-prompt">${item.word}</h2>
         <button class="mic-btn" id="micBtn" ${soportado?'':'disabled'} onclick="escucharPalabra()">🎤</button>
         <div class="feedback" id="pronunciaFeedback">
