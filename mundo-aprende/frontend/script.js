@@ -648,7 +648,7 @@ function startSopa(){
   const {grid, placed} = buildSopaGrid(SOPA_WORDS);
   const wordCategory = {};
   SOPA_WORDS.forEach(w => { wordCategory[w] = SOPA_CATEGORIES[randInt(0, SOPA_CATEGORIES.length-1)]; });
-  sopaState = { grid, placed, found:new Set(), start:null, wordCategory };
+  sopaState = { grid, placed, found:new Set(), selected:[], wordCategory };
   renderSopa();
 }
 
@@ -671,8 +671,9 @@ function renderSopa(){
   for(let r=0;r<SOPA_SIZE;r++){
     for(let c=0;c<SOPA_SIZE;c++){
       const cat = sopaCellCategory(r,c);
+      const selected = sopaState.selected.some(cell => cell.r===r && cell.c===c);
       const style = cat ? ` style="background:${cat.color}26;color:${cat.color};border:2px solid ${cat.color};"` : '';
-      const cls = cat ? 'sopa-cell found' : 'sopa-cell';
+      const cls = cat ? 'sopa-cell found' : `sopa-cell${selected?' selected':''}`;
       cellsHTML += `<div class="${cls}" id="cell-${r}-${c}"${style} onclick="sopaClickCell(${r},${c})">${sopaState.grid[r][c]}</div>`;
     }
   }
@@ -692,7 +693,7 @@ function renderSopa(){
       <div class="progress-bar"><div style="width:${(sopaState.found.size/SOPA_WORDS.length)*100}%; background:${act.c2}"></div></div>
       <div class="card">
         <div class="q-eyebrow" style="color:${act.c1}">Sopa de letras</div>
-        <h2 class="q-prompt">Toca la primera y la última letra de cada palabra</h2>
+        <h2 class="q-prompt">Toca cada letra de la palabra en orden</h2>
         <div class="sopa-layout">
           <div class="sopa-grid" style="grid-template-columns:repeat(${SOPA_SIZE}, 1fr);">${cellsHTML}</div>
           <div class="sopa-words">
@@ -727,51 +728,34 @@ function renderSopa(){
 }
 
 function sopaClickCell(r,c){
-  if(!sopaState.start){
-    sopaState.start = {r,c};
-    document.getElementById(`cell-${r}-${c}`).classList.add('selected');
+  const cell = {r,c};
+  const availableWords = sopaState.placed.filter(pw => !sopaState.found.has(pw.word));
+  const followsWord = pw => sopaState.selected.length < pw.cells.length &&
+    sopaState.selected.every((selectedCell,i) =>
+      pw.cells[i].r===selectedCell.r && pw.cells[i].c===selectedCell.c
+    ) && pw.cells[sopaState.selected.length].r===r && pw.cells[sopaState.selected.length].c===c;
+  let candidates = availableWords.filter(followsWord);
+
+  if(candidates.length===0){
+    sopaState.selected = [];
+    candidates = availableWords.filter(pw => pw.cells[0].r===r && pw.cells[0].c===c);
+  }
+
+  if(candidates.length===0){
+    renderSopa();
+    const el = document.getElementById(`cell-${r}-${c}`);
+    if(el){ el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'), 300); }
     return;
   }
-  const start = sopaState.start;
-  const end = {r,c};
-  sopaState.start = null;
 
-  const dr = Math.sign(end.r - start.r);
-  const dc = Math.sign(end.c - start.c);
-  const len = Math.max(Math.abs(end.r-start.r), Math.abs(end.c-start.c)) + 1;
-  const isStraight = (start.r===end.r) || (start.c===end.c) || (Math.abs(end.r-start.r)===Math.abs(end.c-start.c));
-
-  document.getElementById(`cell-${start.r}-${start.c}`).classList.remove('selected');
-
-  if(!isStraight){ return; }
-
-  const path = [];
-  for(let i=0;i<len;i++) path.push({r:start.r+dr*i, c:start.c+dc*i});
-  const letters = path.map(p => sopaState.grid[p.r][p.c]).join('');
-  const reversed = letters.split('').reverse().join('');
-
-  const match = sopaState.placed.find(pw => {
-    if(sopaState.found.has(pw.word)) return false;
-    if(pw.word === letters || pw.word === reversed){
-      const wordCellsSet = new Set(pw.cells.map(cc=>`${cc.r}-${cc.c}`));
-      const pathCellsSet = new Set(path.map(cc=>`${cc.r}-${cc.c}`));
-      if(wordCellsSet.size !== pathCellsSet.size) return false;
-      for(const k of wordCellsSet) if(!pathCellsSet.has(k)) return false;
-      return true;
-    }
-    return false;
-  });
-
+  sopaState.selected.push(cell);
+  const match = candidates.find(pw => pw.cells.length===sopaState.selected.length);
   if(match){
     sopaState.found.add(match.word);
+    sopaState.selected = [];
     state.score = sopaState.found.size;
-    renderSopa();
-  } else {
-    path.forEach(p=>{
-      const el = document.getElementById(`cell-${p.r}-${p.c}`);
-      if(el){ el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'), 300); }
-    });
   }
+  renderSopa();
 }
 
 /* =========================================================
