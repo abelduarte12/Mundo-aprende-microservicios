@@ -255,6 +255,12 @@ body.theme-formas{background:linear-gradient(135deg,var(--formas-a),var(--formas
 .q-prompt{font-family:'Baloo 2',sans-serif; font-size:1.5rem; font-weight:700; margin:0 0 18px; color:var(--ink);}
 .q-visual{font-size:2.4rem; margin:14px 0 22px; line-height:1.5; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px;}
 .q-visual .op{font-size:1.6rem; font-weight:800; color:var(--ink-soft); margin:0 6px;}
+.activity-visual{font-size:5.2rem; line-height:1.2;}
+.activity-visual-large{font-size:6rem;}
+.activity-visual-shape{font-size:6.8rem;}
+.comparison-visual{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:18px; width:100%;}
+.comparison-visual .emoji-group{flex:0 1 190px;}
+.comparison-visual .op{flex:0 0 auto;}
 .emoji-group{display:inline-flex; flex-wrap:wrap; gap:4px; max-width:190px; justify-content:center;}
 .emoji-group span{font-size:3.4rem;}
 
@@ -401,4 +407,14 @@ footer.app-footer{
   .options-grid{grid-template-columns:1fr;}
   .sopa-cell{width:28px;height:28px;font-size:.82rem;}
   .card{padding:26px 18px;}
+  .q-visual{flex-wrap:nowrap; gap:4px;}
+  .activity-visual,
+  .activity-visual-large,
+  .activity-visual-shape,
+  .silaba-emoji,
+  .vowel-emoji{font-size:4.2rem;}
+  .emoji-group{max-width:95px; gap:2px; line-height:1.2;}
+  .emoji-group span{font-size:1.8rem;}
+  .comparison-visual{flex-wrap:nowrap; gap:4px;}
+  .comparison-visual .emoji-group{flex:1 1 95px; max-width:95px;}
 }
