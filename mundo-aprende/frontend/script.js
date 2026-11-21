@@ -361,7 +361,7 @@ function genResta(){
     qs.push({
       eyebrow:'Resta',
       prompt:`${a} − ${b} = ?`,
-      visual: `${emojiGroup(a,'🍎')} <span class="op">−</span> <span style="font-size:1.6rem;font-weight:800;">${b}</span>`,
+      visual: `${emojiGroup(a,'🍎')} <span class="op">−</span> ${emojiGroup(b,'🍎')}`,
       options: numOptions(diff, 0, a),
       correct: diff,
     });
