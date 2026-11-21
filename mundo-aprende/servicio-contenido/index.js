@@ -32,7 +32,6 @@ app.get('/api/contenido/silabas', (req, res) => {
 app.get('/api/contenido/sopa', (req, res) => {
   res.json({
     pool: datos.SOPA_WORD_POOL,
-    categorias: datos.SOPA_CATEGORIES,
     tamano: datos.SOPA_SIZE,
   });
 });

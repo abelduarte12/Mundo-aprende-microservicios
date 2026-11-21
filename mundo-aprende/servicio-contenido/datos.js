@@ -10,7 +10,7 @@ const ACTIVITIES = [
   { id: 'suma', icon: '➕', title: 'Suma', desc: 'Suma grupos de objetos y descubre el resultado', tag: '10 preguntas', theme: 'suma' },
   { id: 'resta', icon: '➖', title: 'Resta', desc: 'Quita elementos y encuentra cuántos quedan', tag: '10 preguntas', theme: 'resta' },
   { id: 'contar', icon: '🔢', title: 'Contar', desc: 'Cuenta los objetos y elige el número correcto', tag: '10 preguntas', theme: 'contar' },
-  { id: 'sopa', icon: '🔎', title: 'Sopa de Letras', desc: 'Encuentra las palabras escondidas, cada una de una materia distinta', tag: '5 palabras al azar', theme: 'sopa' },
+  { id: 'sopa', icon: '🔎', title: 'Sopa de Letras', desc: 'Encuentra las palabras escondidas en la cuadricula', tag: '5 palabras al azar', theme: 'sopa' },
   { id: 'completa', icon: '✏️', title: 'Completa las Palabras', desc: 'Descubre la letra que falta en cada palabra', tag: '10 preguntas', theme: 'completa' },
   { id: 'vocales', icon: '🔤', title: 'Las Vocales', desc: 'Aprende la a, e, i, o, u y complétalas en palabras', tag: '5 tarjetas + 8 preguntas', theme: 'vocal' },
   { id: 'silabas', icon: '🧩', title: 'Palabras con MA, ME, MI, MO, MU...', desc: 'Une sílabas con todas sus vocales y forma palabras divertidas', tag: '8 palabras al azar', theme: 'silaba' },
@@ -88,14 +88,6 @@ const SILABA_WORDS = [
 const SILABA_POOL = ['MA','ME','MI','MO','MU','PA','PE','PI','PO','PU','RA','RE','RI','RO','RU','SA','SE','SI','SO','SU','LA','LE','LI','LO','LU'];
 
 const SOPA_WORD_POOL = ['SOL','LUNA','GATO','PEZ','FLOR','RATA','OSO','PATO','LORO','MESA','CASA','LIMA','PERA','ROSA','SAPO'];
-const SOPA_CATEGORIES = [
-  { name: 'Matemáticas', color: '#6366F1' },
-  { name: 'Ciencias', color: '#10B981' },
-  { name: 'Sociales', color: '#F59E0B' },
-  { name: 'Inglés', color: '#EC4899' },
-  { name: 'Arte', color: '#8B5CF6' },
-  { name: 'Deportes', color: '#0EA5E9' },
-];
 const SOPA_SIZE = 8;
 
 const PRONUNCIA_WORDS = [
@@ -150,7 +142,6 @@ module.exports = {
   SILABA_WORDS,
   SILABA_POOL,
   SOPA_WORD_POOL,
-  SOPA_CATEGORIES,
   SOPA_SIZE,
   PRONUNCIA_WORDS,
   COLOR_WORDS,

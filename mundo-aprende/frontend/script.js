@@ -87,7 +87,6 @@ async function cargarContenido() {
   SILABA_WORDS = silabas.palabras;
   SILABA_POOL = silabas.pool;
   SOPA_WORD_POOL = sopa.pool;
-  SOPA_CATEGORIES = sopa.categorias;
   SOPA_SIZE = sopa.tamano;
   PRONUNCIA_WORDS = pronuncia;
   COLOR_WORDS = extra.colores;
@@ -594,10 +593,9 @@ function renderResultScreen(){
 /* =========================================================
    SOPA DE LETRAS
 ========================================================= */
-// SOPA_WORD_POOL, SOPA_SIZE y SOPA_CATEGORIES ahora vienen del servicio de contenido.
+// SOPA_WORD_POOL y SOPA_SIZE ahora vienen del servicio de contenido.
 let SOPA_WORD_POOL = [];
 let SOPA_SIZE = 8;
-let SOPA_CATEGORIES = [];
 let sopaState = null;
 let SOPA_WORDS = [];
 
@@ -646,19 +644,8 @@ function buildSopaGrid(words){
 function startSopa(){
   SOPA_WORDS = shuffle(SOPA_WORD_POOL).slice(0,5);
   const {grid, placed} = buildSopaGrid(SOPA_WORDS);
-  const wordCategory = {};
-  SOPA_WORDS.forEach(w => { wordCategory[w] = SOPA_CATEGORIES[randInt(0, SOPA_CATEGORIES.length-1)]; });
-  sopaState = { grid, placed, found:new Set(), selected:[], wordCategory };
+  sopaState = { grid, placed, found:new Set(), selected:[] };
   renderSopa();
-}
-
-function sopaCellCategory(r,c){
-  for(const pw of sopaState.placed){
-    if(sopaState.found.has(pw.word) && pw.cells.some(cc=>cc.r===r && cc.c===c)){
-      return sopaState.wordCategory[pw.word];
-    }
-  }
-  return null;
 }
 
 function renderSopa(){
@@ -670,19 +657,19 @@ function renderSopa(){
   let cellsHTML = '';
   for(let r=0;r<SOPA_SIZE;r++){
     for(let c=0;c<SOPA_SIZE;c++){
-      const cat = sopaCellCategory(r,c);
       const selected = sopaState.selected.some(cell => cell.r===r && cell.c===c);
-      const style = cat ? ` style="background:${cat.color}26;color:${cat.color};border:2px solid ${cat.color};"` : '';
-      const cls = cat ? 'sopa-cell found' : `sopa-cell${selected?' selected':''}`;
-      cellsHTML += `<div class="${cls}" id="cell-${r}-${c}"${style} onclick="sopaClickCell(${r},${c})">${sopaState.grid[r][c]}</div>`;
+      const found = sopaState.placed.some(pw =>
+        sopaState.found.has(pw.word) &&
+        pw.cells.some(cell => cell.r===r && cell.c===c)
+      );
+      const cls = found ? 'sopa-cell found' : `sopa-cell${selected?' selected':''}`;
+      cellsHTML += `<div class="${cls}" id="cell-${r}-${c}" onclick="sopaClickCell(${r},${c})">${sopaState.grid[r][c]}</div>`;
     }
   }
 
   const wordsHTML = SOPA_WORDS.map(w => {
-    const cat = sopaState.wordCategory[w];
     const isDone = sopaState.found.has(w);
     return `<li class="${isDone?'done':''}">
-      <span class="cat-badge" style="background:${cat.color}22;color:${cat.color};">${cat.name}</span>
       <span>${w}</span>
     </li>`;
   }).join('');

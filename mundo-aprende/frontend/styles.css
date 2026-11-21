@@ -351,10 +351,6 @@ body.theme-formas{background:linear-gradient(135deg,var(--formas-a),var(--formas
 }
 .sopa-words li.done{background:#D1FAE5; color:#065F46; opacity:.85;}
 .sopa-words li.done span:last-child{text-decoration:line-through;}
-.cat-badge{
-  display:inline-block; font-size:.65rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase;
-  padding:2px 8px; border-radius:999px; width:fit-content;
-}
 
 /* =========================================================
    SILABAS
