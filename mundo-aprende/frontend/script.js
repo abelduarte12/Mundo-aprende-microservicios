@@ -11,6 +11,9 @@ const state = {
   answered: false,
   loginTime: null,      // NUEVO: para calcular el indicador %AT
   activityStart: null,  // NUEVO: duración de cada actividad
+  nivel: 1,             // IA: nivel actual de la actividad
+  respuestas: [],       // IA: detalle de cada respuesta de la ronda
+  qStart: null,         // IA: momento en que se mostró la pregunta
 };
 
 const app = document.getElementById('app');
@@ -87,6 +90,7 @@ async function cargarContenido() {
   SILABA_WORDS = silabas.palabras;
   SILABA_POOL = silabas.pool;
   SOPA_WORD_POOL = sopa.pool;
+  SOPA_CATEGORIES = sopa.categorias;
   SOPA_SIZE = sopa.tamano;
   PRONUNCIA_WORDS = pronuncia;
   COLOR_WORDS = extra.colores;
@@ -336,22 +340,59 @@ function numOptions(correct, min, max){
   return shuffle(Array.from(set)).map(v => ({label:String(v), value:v}));
 }
 
-function genSuma(){
+/* ====== SUMA ADAPTATIVA (IA con Claude) ====== */
+function parSumaPorNivel(nivel){
+  switch(nivel){
+    case 1: return [randInt(1,3), randInt(1,3)];                 // 1+1, 2+2
+    case 2: return [randInt(1,6), randInt(1,6)];                 // nivel original
+    case 3: return [randInt(5,9), randInt(5,9)];                 // 7+8
+    case 4: { const u = randInt(0,8);                            // 20+9, 31+5 (sin llevar)
+              return [randInt(1,9)*10 + u, randInt(1, 9-u)]; }
+    case 5: { const u = randInt(2,9);                            // 28+7 (con llevada)
+              return [randInt(1,8)*10 + u, randInt(10-u, 9)]; }
+    default: return [randInt(10,50), randInt(10,49)];            // nivel 6: 2 cifras + 2 cifras
+  }
+}
+function genSuma(nivel = 2){
   const qs = [];
   for(let i=0;i<10;i++){
-    const a = randInt(1,6), b = randInt(1,6);
+    const [a, b] = parSumaPorNivel(nivel);
     const sum = a+b;
     qs.push({
-      eyebrow:'Suma',
+      eyebrow:`Suma · Nivel ${nivel}`,
       prompt:`${a} + ${b} = ?`,
-      visual: `${emojiGroup(a,'🔵')} <span class="op">+</span> ${emojiGroup(b,'🔵')}`,
+      visual: nivel <= 3 ? `${emojiGroup(a,'🔵')} <span class="op">+</span> ${emojiGroup(b,'🔵')}` : '',
       options: numOptions(sum, Math.max(0,sum-5), sum+5),
       correct: sum,
     });
   }
   return qs;
 }
-
+async function iniciarSumaAdaptativa(){
+  state.respuestas = [];
+  try{
+    const r = await fetch(`${API_CONFIG.IA}/api/ia/nivel/${encodeURIComponent(state.name)}/suma`);
+    const d = await r.json();
+    state.nivel = d.nivel || 1;
+  }catch(e){ state.nivel = 1; }   // si el servicio está dormido o falla, empieza en nivel 1
+  state.activityStart = Date.now(); // la duración empieza cuando ya se muestran las preguntas
+  state.questions = genSuma(state.nivel);
+  renderQuestionScreen();
+}
+async function evaluarConIA(actividad){
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 9000);
+    const res = await fetch(`${API_CONFIG.IA}/api/ia/evaluar`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ nombre: state.name, actividad, respuestas: state.respuestas }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    return res.ok ? await res.json() : null;
+  }catch(e){ return null; }
+}
 function genResta(){
   const qs = [];
   for(let i=0;i<10;i++){
@@ -360,7 +401,7 @@ function genResta(){
     qs.push({
       eyebrow:'Resta',
       prompt:`${a} − ${b} = ?`,
-      visual: `${emojiGroup(a,'🍎')} <span class="op">−</span> ${emojiGroup(b,'🍎')}`,
+      visual: `${emojiGroup(a,'🍎')} <span class="op">−</span> <span style="font-size:1.6rem;font-weight:800;">${b}</span>`,
       options: numOptions(diff, 0, a),
       correct: diff,
     });
@@ -521,6 +562,7 @@ function renderQuestionScreen(){
       </div>
     </div>
   `;
+  state.qStart = Date.now(); // IA: mide cuánto tarda en responder
 }
 
 function answerGeneric(idx){
@@ -531,6 +573,12 @@ function answerGeneric(idx){
   const feedback = document.getElementById('feedback');
   const chosen = q.options[idx];
   const isCorrect = chosen.value === q.correct;
+  state.respuestas.push({ // IA: guarda el detalle de cada respuesta
+    pregunta: q.prompt,
+    correcta: q.correct,
+    elegida: chosen.value,
+    segundos: Math.round((Date.now() - (state.qStart || Date.now()))/1000),
+  });
 
   buttons.forEach((b,i)=>{
     b.classList.add('disabled');
@@ -581,6 +629,7 @@ function renderResultScreen(){
         <div class="result-stars">${starDisplay}</div>
         <div class="result-score">${state.score} de ${total} correctas</div>
         <p class="result-msg">¡Buen trabajo, ${state.name}! Sigue practicando para ganar más estrellas.</p>
+        <p class="result-msg" id="msgIA"></p>
         <div class="result-actions">
           <button class="btn-next" style="--c1:${act.c1};--c2:${act.c2}" onclick="startActivity('${act.id}')">Volver a intentar</button>
           <button class="btn-ghost" onclick="goToMenu()">Volver al menú</button>
@@ -588,14 +637,22 @@ function renderResultScreen(){
       </div>
     </div>
   `;
+  if(act.id === 'suma'){
+    evaluarConIA('suma').then(r=>{
+      const el = document.getElementById('msgIA');
+      if(!r || !el) return;
+      el.textContent = r.mensaje_nino + (r.decision === 'subir' ? ' ⬆️ ¡Subiste de nivel!' : '');
+    });
+  }
 }
 
 /* =========================================================
    SOPA DE LETRAS
 ========================================================= */
-// SOPA_WORD_POOL y SOPA_SIZE ahora vienen del servicio de contenido.
+// SOPA_WORD_POOL, SOPA_SIZE y SOPA_CATEGORIES ahora vienen del servicio de contenido.
 let SOPA_WORD_POOL = [];
 let SOPA_SIZE = 8;
+let SOPA_CATEGORIES = [];
 let sopaState = null;
 let SOPA_WORDS = [];
 
@@ -644,8 +701,19 @@ function buildSopaGrid(words){
 function startSopa(){
   SOPA_WORDS = shuffle(SOPA_WORD_POOL).slice(0,5);
   const {grid, placed} = buildSopaGrid(SOPA_WORDS);
-  sopaState = { grid, placed, found:new Set(), selected:[] };
+  const wordCategory = {};
+  SOPA_WORDS.forEach(w => { wordCategory[w] = SOPA_CATEGORIES[randInt(0, SOPA_CATEGORIES.length-1)]; });
+  sopaState = { grid, placed, found:new Set(), selected:[], wordCategory };
   renderSopa();
+}
+
+function sopaCellCategory(r,c){
+  for(const pw of sopaState.placed){
+    if(sopaState.found.has(pw.word) && pw.cells.some(cc=>cc.r===r && cc.c===c)){
+      return sopaState.wordCategory[pw.word];
+    }
+  }
+  return null;
 }
 
 function renderSopa(){
@@ -657,19 +725,19 @@ function renderSopa(){
   let cellsHTML = '';
   for(let r=0;r<SOPA_SIZE;r++){
     for(let c=0;c<SOPA_SIZE;c++){
+      const cat = sopaCellCategory(r,c);
       const selected = sopaState.selected.some(cell => cell.r===r && cell.c===c);
-      const found = sopaState.placed.some(pw =>
-        sopaState.found.has(pw.word) &&
-        pw.cells.some(cell => cell.r===r && cell.c===c)
-      );
-      const cls = found ? 'sopa-cell found' : `sopa-cell${selected?' selected':''}`;
-      cellsHTML += `<div class="${cls}" id="cell-${r}-${c}" onclick="sopaClickCell(${r},${c})">${sopaState.grid[r][c]}</div>`;
+      const style = cat ? ` style="background:${cat.color}26;color:${cat.color};border:2px solid ${cat.color};"` : '';
+      const cls = cat ? 'sopa-cell found' : `sopa-cell${selected?' selected':''}`;
+      cellsHTML += `<div class="${cls}" id="cell-${r}-${c}"${style} onclick="sopaClickCell(${r},${c})">${sopaState.grid[r][c]}</div>`;
     }
   }
 
   const wordsHTML = SOPA_WORDS.map(w => {
+    const cat = sopaState.wordCategory[w];
     const isDone = sopaState.found.has(w);
     return `<li class="${isDone?'done':''}">
+      <span class="cat-badge" style="background:${cat.color}22;color:${cat.color};">${cat.name}</span>
       <span>${w}</span>
     </li>`;
   }).join('');
@@ -1045,8 +1113,9 @@ function startActivity(id){
   state.score = 0;
   state.answered = false;
   state.activityStart = Date.now(); // NUEVO: para el indicador de duración
+  state.respuestas = [];            // IA: reinicia el detalle de respuestas
 
-  if(id === 'suma'){ state.questions = genSuma(); renderQuestionScreen(); }
+  if(id === 'suma'){ iniciarSumaAdaptativa(); }
   else if(id === 'resta'){ state.questions = genResta(); renderQuestionScreen(); }
   else if(id === 'contar'){ state.questions = genContar(); renderQuestionScreen(); }
   else if(id === 'completa'){ state.questions = genCompleta(); renderQuestionScreen(); }
@@ -1071,7 +1140,7 @@ function initApp(){
   setBodyTheme('login');
   app.innerHTML = `<div class="login-wrap"><p class="login-sub" style="color:#fff;">Cargando actividades...</p></div>`;
   cargarContenido()
-    .then(showLogin)
+    .then(showLogin)S
     .catch(err => {
       console.error(err);
       app.innerHTML = `<div class="login-wrap"><p class="login-sub" style="color:#fff;">
