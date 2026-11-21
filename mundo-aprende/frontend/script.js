@@ -1140,7 +1140,7 @@ function initApp(){
   setBodyTheme('login');
   app.innerHTML = `<div class="login-wrap"><p class="login-sub" style="color:#fff;">Cargando actividades...</p></div>`;
   cargarContenido()
-    .then(showLogin)S
+    .then(showLogin)
     .catch(err => {
       console.error(err);
       app.innerHTML = `<div class="login-wrap"><p class="login-sub" style="color:#fff;">
